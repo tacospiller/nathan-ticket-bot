@@ -35,27 +35,32 @@ module.exports = {
         });
     },
     sendMessage: (chatId, message, parseMode) => {
-        const payload = JSON.stringify({
-            chat_id: chatId,
-            text: message,
-            parse_mode: parseMode,
-        });
-        const options = {
-            url: 'https://api.telegram.org/bot' + CONFIG.get('telegramToken') + '/sendMessage',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: payload,
-        };
+        try {
+                const payload = JSON.stringify({
+                chat_id: chatId,
+                text: message,
+                parse_mode: parseMode,
+            });
+            const options = {
+                url: 'https://api.telegram.org/bot' + CONFIG.get('telegramToken') + '/sendMessage',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: payload,
+            };
 
-        request(options, (error, response, body) => {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log(message);
-            }
-        });
+            request(options, (error, response, body) => {
+                if (error) {
+                    console.log(error);
+                } else {
+                    console.log(message);
+                }
+            });
+        } catch (e) {
+            console.log(e);
+            console.log('sendMessage failed');
+        }
     },
     on: (command, callback) => {
         this.commandCallbacks = this.commandCallbacks || {};
@@ -90,29 +95,34 @@ module.exports = {
         return cmds;
     },
     processUpdates: () => {
-        getUpdates(OFFSET, (error, response, body) => {
-            if (error) {
-                console.log(error);
-            } else {
-                const jsonBody = JSON.parse(body);
-                jsonBody.result.forEach((i) => {
-                    if (i.update_id > OFFSET) {
-                        const cmds = module.exports.parseCommand(i.message);
-                        cmds.forEach((c) => {
-                            if(this.commandCallbacks[c.cmd]) {
-                                try {
-                                    this.commandCallbacks[c.cmd](c);
-                                } catch (e) {
-                                    module.exports.sendMessage(c.chatId, '오류가 있었어. ' + e.toString());
-                                    console.log(e);
+        try {
+            getUpdates(OFFSET, (error, response, body) => {
+                if (error) {
+                    console.log(error);
+                } else {
+                    const jsonBody = JSON.parse(body);
+                    jsonBody.result.forEach((i) => {
+                        if (i.update_id > OFFSET) {
+                            const cmds = module.exports.parseCommand(i.message);
+                            cmds.forEach((c) => {
+                                if(this.commandCallbacks[c.cmd]) {
+                                    try {
+                                        this.commandCallbacks[c.cmd](c);
+                                    } catch (e) {
+                                        module.exports.sendMessage(c.chatId, '오류가 있었어. ' + e.toString());
+                                        console.log(e);
+                                    }
                                 }
-                            }
-                        });
-                    }
-                });
-                OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
-            }
+                            });
+                        }
+                    });
+                    OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
+                }
+                setTimeout(module.exports.processUpdates, 2000);
+            });  
+        } catch (e) {
+            console.log(e);
             setTimeout(module.exports.processUpdates, 2000);
-        });  
-    }
+        }
+    },
 }

@@ -44,43 +44,47 @@ function matchShow(show, str) {
 }
 
 function crawl() {
-    request(CONFIG.get('gallHost') + CONFIG.get('gallPath') + CONFIG.get('gallName'),
-        (error, response, body) => {
-            let $ = cheerio.load(body);
-            const titles = [];
-            let recentPost = LAST_POST;
-            $('td.t_subject a').each((i, e) => {
-                const link = url.parse($(e).attr('href'), true);
-                const no = parseInt(link.query.no);
-                if (link.query.no && no > LAST_POST) {
-                    if (recentPost < no) {
-                        recentPost = no; 
+    try {
+        request(CONFIG.get('gallHost') + CONFIG.get('gallPath') + CONFIG.get('gallName'),
+            (error, response, body) => {
+                let $ = cheerio.load(body);
+                const titles = [];
+                let recentPost = LAST_POST;
+                $('td.t_subject a').each((i, e) => {
+                    const link = url.parse($(e).attr('href'), true);
+                    const no = parseInt(link.query.no);
+                    if (link.query.no && no > LAST_POST) {
+                        if (recentPost < no) {
+                            recentPost = no; 
+                        }
+                        titles.push({
+                            link: $(e).attr('href'),
+                            title: $(e).text(),
+                        });
                     }
-                    titles.push({
-                        link: $(e).attr('href'),
-                        title: $(e).text(),
-                    });
-                }
+                });
+                LAST_POST = recentPost;
+                const filteredtitles = _.filter(titles, (e) => {
+                    return (
+                        (CONFIG.get('keywords').length === 0 || 
+                        _.some(CONFIG.get('keywords'), (k) => {
+                            return e.title.includes(k);
+                        })) && 
+                        (CONFIG.get('shows').length === 0 ||
+                        _.some(CONFIG.get('shows'), (s) => {
+                            return matchShow(s, e.title);
+                        }))
+                    );
+                });
+                _.forEach(filteredtitles, (t) => {
+                    telegram.sendMessage(CONFIG.get('chatId'), t.title + ' ' + CONFIG.get('gallHost') + t.link);
+                });
+                setTimeout(crawl, 1000);
             });
-            LAST_POST = recentPost;
-            const filteredtitles = _.filter(titles, (e) => {
-                return (
-                    (CONFIG.get('keywords').length === 0 || 
-                     _.some(CONFIG.get('keywords'), (k) => {
-                        return e.title.includes(k);
-                    })) && 
-                    (CONFIG.get('shows').length === 0 ||
-                     _.some(CONFIG.get('shows'), (s) => {
-                         return matchShow(s, e.title);
-                     }))
-                );
-            });
-            _.forEach(filteredtitles, (t) => {
-                telegram.sendMessage(CONFIG.get('chatId'), t.title + ' ' + CONFIG.get('gallHost') + t.link);
-            });
-            setTimeout(crawl, 1000);
-        });
-
+    } catch (e) {
+        console.log(e);
+        setTimeout(crawl, 1000);
+    }
 }
 
 init();
