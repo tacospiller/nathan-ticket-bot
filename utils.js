@@ -12,8 +12,8 @@ module.exports = {
         const m2 = str.match('([0-9]{1,2})월[ ]?([0-9]{1,2})일');
         if (m2 && m2.length >= 3) {
             return {
-                month: parseInt(m1[1]),
-                day: parseInt(m1[2]),
+                month: parseInt(m2[1]),
+                day: parseInt(m2[2]),
             };
         }
 
