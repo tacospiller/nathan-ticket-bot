@@ -1,0 +1,17 @@
+{
+  "name": "nathan-ticket-bot",
+  "version": "0.0.1",
+  "description": "But my glasses...",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^0.22.0",
+    "configstore": "^3.0.0",
+    "lodash": "^4.17.4",
+    "request": "^2.81.0"
+  }
+}
