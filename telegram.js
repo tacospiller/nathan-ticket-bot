@@ -34,20 +34,26 @@ module.exports = {
             module.exports.processUpdates();
         });
     },
-    sendMessage: (chatId, message, parseMode) => {
+    sendMessage: (chatId, message, parseMode, origMessage) => {
         try {
-                const payload = JSON.stringify({
+            const payload = {
                 chat_id: chatId,
                 text: message,
-                parse_mode: parseMode,
-            });
+            };
+            if (parseMode) {
+                payload['parse_mode'] = parseMode;
+            }
+            if (origMessage) {
+                payload['reply_to_message_id'] = origMessage;
+            }
+
             const options = {
                 url: 'https://api.telegram.org/bot' + CONFIG.get('telegramToken') + '/sendMessage',
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: payload,
+                body: JSON.stringify(payload),
             };
 
             request(options, (error, response, body) => {
@@ -82,6 +88,8 @@ module.exports = {
                     cmd: splits[i],
                     sender: message.from.username,
                     chatId: message.chat.id,
+                    replyTo: message.reply_to_message_id,
+                    messageId: message.message_id,
                     args: [],
                 };
             } else {

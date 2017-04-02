@@ -11,7 +11,9 @@
   "dependencies": {
     "cheerio": "^0.22.0",
     "configstore": "^3.0.0",
+    "cookie-client": "0.0.3",
     "lodash": "^4.17.4",
+    "random-words": "0.0.1",
     "request": "^2.81.0"
   }
 }
