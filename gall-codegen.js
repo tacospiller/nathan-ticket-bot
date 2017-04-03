@@ -41,16 +41,12 @@ module.exports = {
     let _r = keyGen(k);
     let _rs;
 
+    var _f = parseInt(_r.substr(0, 1));
+	_r = (_f > 5 ? _f - 5 : _f + 4) + _r.substr(1);
+
     if (typeof (_r) == 'string')
         _rs = _r.split(',');
     var rc = '';
-
-    const digits = parseInt(_rs[0]) % 100;
-    if (digits <= 43 || digits >= 89) {
-        _rs[0] = 300 + digits;
-    } else {
-        _rs[0] = 600 + digits;
-    }
 
     console.log(_rs);
 
