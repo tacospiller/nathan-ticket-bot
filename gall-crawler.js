@@ -25,8 +25,8 @@ module.exports = {
                             LAST_POST = no;
                     }
                     });
-                    console.log('Beginning crawl from post ' + LAST_POST);
-                    module.exports.crawl();                        
+                    //console.log('Beginning crawl from post ' + LAST_POST);
+                    //module.exports.crawl();                        
                 });
     },
 
@@ -51,7 +51,27 @@ module.exports = {
     },
 
     reply: (url, message, chatId, origMessage) => {
-        request(url, (error, response, body) => {
+        
+        var agent = new http.Agent({
+            keepAlive: true,
+            maxSockets: 1,
+            keepAliveMsecs: 5000
+        });
+
+        const o = {
+            url: url,
+            agent: agent,
+            headers: {
+                    'Cache-Control': 'max-age=0',
+                    'Upgrade-Insecure-Requests': '1',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    //'Accept-Encoding': 'gzip, deflate, sdch',
+                    //'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4'
+                },
+        };
+        
+        request(o, (error, response, body) => {
             if (error) {
                 console.log(error);
                 telegram.sendMessage(chatId, '댓글 달기 실패', undefined, origMessage);
@@ -68,23 +88,28 @@ module.exports = {
             $('form#comment_write input[type="hidden"]').each((i, e) => {
                 requestBody[$(e).attr('name')] = $(e).val();
             });
-            const fields = ['cur_t', 'id', 'no', 'best_pno', 'check_6', 'check_7', 'check_8', 'code', 'user_ip'];
-            fields.forEach((f) => {
-                if ($('input#' + f + '').val()) {
-                    requestBody[f] = $('input#' + f + '').val();
-                } else {
-                    requestBody[f] = 'undefined';
-                }
-            });
-
-            requestBody['best_origin'] = $('input#best_fno').val();
-            requestBody['recommend'] = 0;
-            requestBody['campus'] = 0;
-            requestBody['best_type'] = 'BEST';
 
             requestBody['name'] = 'ㅇㅇ';
             requestBody['password'] = randomWords();
             requestBody['memo'] = message;
+
+            requestBody['cur_t'] = $("#cur_t").val();
+            requestBody['id'] = $("#id").val();
+            requestBody['no'] = $("#no").val();
+            requestBody['best'] = 'undefined';
+            requestBody['best_pno'] = 'undefined';
+            requestBody['best_origin'] = '';
+            requestBody['check_6'] = $('#check_6').val();
+            requestBody['check_7'] = $('#check_7').val();
+            requestBody['check_8'] = $('#check_8').val();
+            requestBody['campus'] = '0';
+            requestBody['recommend'] = '0';
+            requestBody['code'] = 'undefined';
+            requestBody['user_ip'] = $('#user_ip').val();
+
+            let cookieString = 'siteUniqId=STU_58d6793cpspvTMwN; ' 
+                + cookieJar.cookieStringForRequest(CONFIG.get('gallHost'), '/forms/comment_submit', false);
+            cookieString += '; __utmt=1; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8; __utma=118540316.1840529439.1490450732.1491148807.1491151122.5; __utmb=118540316.6.10.1491151122; __utmc=118540316; __utmz=118540316.1490542821.3.3.utmcsr=gall.dcinside.com|utmccn=(referral)|utmcmd=referral|utmcct=/theaterM/2025357';
 
             const payload = querystring.stringify(requestBody);
             const options = {
@@ -92,20 +117,19 @@ module.exports = {
                 path: '/forms/comment_submit',
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'Cookie': cookieJar.cookieStringForRequest(CONFIG.get('gallHost'), '/forms/comment_submit', true) + '; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8; __utmt=1; __utma=118540316.1765612254.1491110587.1491110587.1491110587.1; __utmb=118540316.2.10.1491110587; __utmc=118540316; __utmz=118540316.1491110587.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)',
-                    //'Accept': '*/*',
+                    'Content-Length': Buffer.byteLength(payload),
+                    'Accept': '*/*',
                     'Origin': 'http://gall.dcinside.com',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36',
-                    'Referer': 'http://gall.dcinside.com/board/view/?id=theaterM&no=2030885&page=1',
-                    //'Connection': 'keep-alive',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Referer': url,
                     //'Accept-Encoding': 'gzip, deflate',
                     //'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4',
-                    'Content-Length': Buffer.byteLength(payload),
+                    'Cookie': cookieString,
                 },
+                agent: agent,
             }
-
             console.log(options.headers.Cookie);
             console.log(payload);
             let resp = '';
@@ -119,7 +143,8 @@ module.exports = {
                 })
             });
 
-            req.write(payload, 'UTF-8');
+            req.write(payload,
+            'UTF-8');
             req.end();
 
 /*
