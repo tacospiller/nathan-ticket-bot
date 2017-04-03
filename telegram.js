@@ -34,7 +34,7 @@ module.exports = {
             module.exports.processUpdates();
         });
     },
-    sendMessage: (chatId, message, parseMode, origMessage) => {
+    sendMessage: (chatId, message, parseMode, origMessage, callback) => {
         try {
             const payload = {
                 chat_id: chatId,
@@ -61,6 +61,9 @@ module.exports = {
                     console.log(error);
                 } else {
                     console.log(message);
+                }
+                if (callback) {
+                    callback();
                 }
             });
         } catch (e) {

@@ -115,8 +115,18 @@ function onComment(cmd) {
     telegram.sendMessage(cmd.chatId, '뭔가 잘못된 것 같아.', undefined, cmd.messageId);
 }
 
+function hello(cmd) {
+    telegram.sendMessage(cmd.chatId, '@' + cmd.sender+ ' 안녕.');
+}
+
+function bye(cmd) {
+    telegram.sendMessage(cmd.chatId, '@' + cmd.sender+ ' 잘 있어.', undefined, undefined, () => { process.exit(0); });
+}
+
 telegram.on('/here', onHere);
 telegram.on('/config', onConfig);
+telegram.on('/hi', hello);
+telegram.on('/bye', bye);
 telegram.on('/찾아줘', onFind);
 telegram.on('/뭐찾아', onWhatFind);
 telegram.on('/찾지마', onDontFind);
