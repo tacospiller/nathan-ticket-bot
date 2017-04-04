@@ -14,7 +14,7 @@ const http = require('http');
 
 let LAST_POST = 0;
 
-function sendReply($, cookieJar, agent, message, url, body, next) {
+function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
     const requestBody = {};
     
     $('form#comment_write input[type="hidden"]').each((i, e) => {
@@ -22,7 +22,7 @@ function sendReply($, cookieJar, agent, message, url, body, next) {
     });
 
     requestBody['name'] = 'ㅇㅇ';
-    requestBody['password'] = randomWords();
+    requestBody['password'] = 'nathan';
     requestBody['memo'] = message;
 
     requestBody['cur_t'] = $("#cur_t").val();
@@ -42,12 +42,16 @@ function sendReply($, cookieJar, agent, message, url, body, next) {
     const codeKey = codeGen.keyFinder(body);
     requestBody['service_code'] = codeGen.serviceCode(codeKey, requestBody['service_code']);
 
-//    requestBody['service_code'] = codeGen.serviceCode('40vh30tk4GTiu0/Ruzuh3zwRuztg30Bk4rXi30BWurTgE0/RuzBg30/i', '21ac6e96ad152e8f15a05b7350a24759b5606fa191c17e042e4d0175735f4d687feb82f0da55ef850165ede88a2bf08f5d1d766e9e153e9ed48034a7ee6c9f58bc824d59fe156df68168cc79a6d2f5f14ac7622c9ba9ee8e19b489a8fa36bb9d157f66eb4f62da98f77d5f35ebea663ab6e53d0d0f0a0f0c253458bad06af8280273c72a898c7e80d38141860b7211d829548a4fc64313ed93ea73a546df6f559f0f089fe16738e2');
-//    requestBody['ci_t'] = 'cbb563e57106423984d9868759261fd9';
+//    requestBody['service_code'] = codeGen.serviceCode('u6/h30tk4GTV46uRuzvU3zwRE0qg30tTu=Thu6qRu6uX30tTEGTkEGXi', 
+//    '21ac6e96ad152e8f15a05b7350a24759b5606fa191c17e042e4d0175735f4d687fe382fbda50ef850165ede88a2bf08f0877ba339632311647308d09f7e9ef476cfc4ddcf07040dba82f9828e00ae15da319f405ad178641da9c46aa426586a7b9300abb6cc75da574ffe4e6ce4c91bf00bae955f94f53747ec641eee51e008bdbf762d741fc7ac734a06975bdc0f3be73145c9c5982b7a360646f2320b4f02d8d109aa5b6c8e4b9');
+//        requestBody['ci_t'] = '35fbf286023bdf97b714ef8fe4a13ced';
+
     console.log(JSON.stringify(requestBody));
 
     let cookieString = cookieJar.cookieStringForRequest(CONFIG.get('gallHost'), '/');
-    cookieString += '; siteUniqId=STU_58993e00Zlq2Czus; notice_no=23144; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8@@lunatichai%7C%uB8E8%uB098%uD2F1%uD558%uC774%7C21@@pokemongo%7C%uD3EC%uCF13%uBAAC%20GO%7C18@@hit%7CHIT%7C1@@alcohol%7C%uC8FC%uB958%7C7';
+    cookieString += '; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8@@lunatichai%7C%uB8E8%uB098%uD2F1%uD558%uC774%7C21@@pokemongo%7C%uD3EC%uCF13%uBAAC%20GO%7C18@@hit%7CHIT%7C1@@alcohol%7C%uC8FC%uB958%7C7';
+
+//    let cookieString = 'PHPSESSID=36h99061re106s33s9aqlmt371; service_code=21ac6e96ad152e8f15a05b7350a24759b5606fa191c17e042e4d0175735f4d687fe382fbda50ef850165ede88a2bf08f0877ba339632311647308d09f7e9ef476cfc4ddcf07040dba82f9828e00ae15da319f405ad178641da9c46aa426586a7b9300abb6cc75da574ffe4e6ce4c91bf00bae955f94f53747ec641eee51e008bdbf762d741fc7ac734a06975bdc0f3be73145c9c5982b7a360646f2320b4f02d8d109aa5b6c8e4b9; gallRecom=MjAxNy0wNC0wNCAxNTozNzoxMS80YWQ5MjExZDE4NGI3OGE1ODU3ZDIxN2E0ZTM1Y2RmZGI1YTBkYzI2ZDUyMWNlNjk2MTlmOTUxZjYxZGZkY2Fm; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8@@lunatichai%7C%uB8E8%uB098%uD2F1%uD558%uC774%7C21@@pokemongo%7C%uD3EC%uCF13%uBAAC%20GO%7C18@@hit%7CHIT%7C1@@alcohol%7C%uC8FC%uB958%7C7; ci_c=35fbf286023bdf97b714ef8fe4a13ced';
 
     const payload = querystring.stringify(requestBody);
     const options = {
@@ -81,6 +85,8 @@ function sendReply($, cookieJar, agent, message, url, body, next) {
             if (next.length > 0) {
                 next[0]($, cookieJar, agent, next.slice(1));
             }
+            const result = parseInt(resp) ? '성공' : '실패';
+            telegram.sendMessage(chatId, url + ' 에 덧글 달기 시도. 패스워드는 ' + requestBody.password + ', ip는 ' + requestBody.user_ip + '이야. 결과: ' + result);
         });
     });
 
@@ -119,8 +125,8 @@ module.exports = {
                             LAST_POST = no;
                     }
                     });
-                    //console.log('Beginning crawl from post ' + LAST_POST);
-                    //module.exports.crawl();                        
+                    console.log('Beginning crawl from post ' + LAST_POST);
+                    module.exports.crawl();                        
                 });
     },
 
@@ -178,7 +184,7 @@ module.exports = {
             });
             
             let $ = cheerio.load(body);
-            sendReply($, cookieJar, agent, message, url, body, []);
+            sendReply($, cookieJar, agent, message, url, body, chatId, []);
         })
     },
 
@@ -186,43 +192,53 @@ module.exports = {
         try {
             request(CONFIG.get('gallHost') + CONFIG.get('gallPath') + CONFIG.get('gallName'),
                 (error, response, body) => {
-                    let $ = cheerio.load(body);
-                    const titles = [];
-                    let recentPost = LAST_POST;
-                    $('td.t_subject a').each((i, e) => {
-                        const link = url.parse($(e).attr('href'), true);
-                        const no = parseInt(link.query.no);
-                        if (link.query.no && no > LAST_POST) {
-                            if (recentPost < no) {
-                                recentPost = no; 
+                    if (error) {
+                        console.log(error);
+                        setTimeout(module.exports.crawl, 500);
+                        return;
+                    }
+                    try {
+                        let $ = cheerio.load(body);
+                        const titles = [];
+                        let recentPost = LAST_POST;
+                        $('td.t_subject a').each((i, e) => {
+                            const link = url.parse($(e).attr('href'), true);
+                            const no = parseInt(link.query.no);
+                            if (link.query.no && no > LAST_POST) {
+                                if (recentPost < no) {
+                                    recentPost = no; 
+                                }
+                                titles.push({
+                                    link: $(e).attr('href'),
+                                    title: $(e).text(),
+                                });
                             }
-                            titles.push({
-                                link: $(e).attr('href'),
-                                title: $(e).text(),
-                            });
-                        }
-                    });
-                    LAST_POST = recentPost;
-                    const filteredtitles = _.filter(titles, (e) => {
-                        return (
-                            (CONFIG.get('keywords').length === 0 || 
-                            _.some(CONFIG.get('keywords'), (k) => {
-                                return e.title.includes(k);
-                            })) && 
-                            (CONFIG.get('shows').length === 0 ||
-                            _.some(CONFIG.get('shows'), (s) => {
-                                return module.exports.matchShow(s, e.title);
-                            }))
-                        );
-                    });
-                    _.forEach(filteredtitles, (t) => {
-                        telegram.sendMessage(CONFIG.get('chatId'), t.title + ' ' + CONFIG.get('gallHost') + t.link);
-                    });
-                    setTimeout(module.exports.crawl, 1000);
+                        });
+                        LAST_POST = recentPost;
+                        const filteredtitles = _.filter(titles, (e) => {
+                            return (
+                                (CONFIG.get('keywords').length === 0 || 
+                                _.some(CONFIG.get('keywords'), (k) => {
+                                    return e.title.includes(k);
+                                })) && 
+                                (CONFIG.get('shows').length === 0 ||
+                                _.some(CONFIG.get('shows'), (s) => {
+                                    return module.exports.matchShow(s, e.title);
+                                }))
+                            );
+                        });
+                        _.forEach(filteredtitles, (t) => {
+                            //telegram.sendMessage(CONFIG.get('chatId'), t.title + ' ' + CONFIG.get('gallHost') + t.link);
+                            module.exports.reply(CONFIG.get('gallHost') + t.link, '나', CONFIG.get('chatId'));
+                        });
+                    }catch (e) {
+                        console.log(e);
+                    }
+                    setTimeout(module.exports.crawl, 500);
                 });
         } catch (e) {
             console.log(e);
-            setTimeout(module.exports.crawl, 1000);
+            setTimeout(module.exports.crawl, 500);
         }
     }
 }
