@@ -94,23 +94,6 @@ function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
     'UTF-8');
     req.end();
 
-/*
-    request(options, (error, response, body) => {
-        if (error) {
-            console.log(error);
-            return;
-        }
-        if (!parseInt(body, 10)) {
-        //     console.log(body);
-        //    console.log(JSON.stringify(requestBody));
-            //   console.log(querystring.stringify(requestBody));
-            telegram.sendMessage(chatId, '문제가 있는 것 같은데. 패스워드는 ' + requestBody.password + '이야.' + body, undefined, origMessage);
-            return;
-        }
-        console.log(body);
-        console.log(JSON.stringify(requestBody));
-        telegram.sendMessage(chatId, '댓글을 잘 보냈어. 패스워드는 ' + requestBody.password + '이야.', undefined, origMessage);
-    })*/
 }
 
 module.exports = {
@@ -150,7 +133,7 @@ module.exports = {
         return true;
     },
 
-    reply: (url, message, chatId, origMessage) => {
+    reply: (url, message, chatId, origMessage, incl) => {
         
         var agent = new http.Agent({
             keepAlive: true,
@@ -184,7 +167,10 @@ module.exports = {
             });
             
             let $ = cheerio.load(body);
-            sendReply($, cookieJar, agent, message, url, body, chatId, []);
+            const content = $('.re_gall_box .con_substance td').text();
+            if (!incl || text.match(incl)) {
+                sendReply($, cookieJar, agent, message, url, body, chatId, []);
+            }
         })
     },
 
@@ -229,7 +215,7 @@ module.exports = {
                         });
                         _.forEach(filteredtitles, (t) => {
                             //telegram.sendMessage(CONFIG.get('chatId'), t.title + ' ' + CONFIG.get('gallHost') + t.link);
-                            module.exports.reply(CONFIG.get('gallHost') + t.link, '나', CONFIG.get('chatId'));
+                            module.exports.reply(CONFIG.get('gallHost') + t.link, '나', CONFIG.get('chatId'), undefined, '[a-fA-F]열');
                         });
                     }catch (e) {
                         console.log(e);
