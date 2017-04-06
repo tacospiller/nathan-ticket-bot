@@ -1,4 +1,5 @@
 const request = require('request');
+const http = require('http');
 
 function promiseRequest(options) {
     return new Promise((resolve, reject) => {
@@ -13,7 +14,7 @@ function promiseRequest(options) {
 
 class HttpSession {
     constructor() {
-        init();
+        this.init();
     }
 
     init() {
@@ -67,4 +68,17 @@ class HttpSession {
         };
         return promiseRequest(options);
     }
+
+    async getCookies(url) {
+        return new Promise((resolve, reject) => {
+            console.log('hi');
+            this.cookieJar.getCookies(url, (err, cookies) => {
+                console.log('hi');
+                if (err) reject(err);
+                else resolve(cookies);
+            });
+        });
+    }
 }
+
+module.exports = HttpSession;

@@ -4,7 +4,7 @@
   "description": "But my glasses...",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
