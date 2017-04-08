@@ -1,7 +1,7 @@
 const Telegram = require('./api-wrapper');
+const Commands = require('./commands');
 
 let OFFSET = 0;
-const CMD_CALLBACKS = {};
 
 function parseCommand(message) {
     if (!message.text) {
@@ -43,7 +43,7 @@ async function pollUpdates() {
             .forEach((r) => {
                 const cmds = parseCommand(i.message);
                 for (let i = 0; i < cmds.length; i++) {
-                    CMD_CALLBACKS[cmds[i].cmd](cmds[i]);
+                    Commands[cmds[i].cmd](cmds[i]);
                 }
             });
             
