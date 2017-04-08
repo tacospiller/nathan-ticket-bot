@@ -1,16 +1,6 @@
 const request = require('request');
 const http = require('http');
-
-function promiseRequest(options) {
-    return new Promise((resolve, reject) => {
-        request(options, (error, response, body) => {
-            if (error) {
-                reject(error);
-            }
-            resolve(response);
-        });
-    });
-}
+const requestPromise = require('./request-promise');
 
 class HttpSession {
     constructor() {
@@ -46,7 +36,7 @@ class HttpSession {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             },
         };
-        return promiseRequest(options);
+        return requestPromise(options);
     }
 
     async post(url, payload, referer, origin) {
@@ -66,7 +56,7 @@ class HttpSession {
             },
             body: payload,
         };
-        return promiseRequest(options);
+        return requestPromise(options);
     }
 
     async getCookies(url) {
