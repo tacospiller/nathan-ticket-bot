@@ -14,7 +14,7 @@ const http = require('http');
 
 let LAST_POST = 0;
 
-function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
+function sendReply($, cookieJar, agent, message, url, body, chatId, next, recur) {
     const requestBody = {};
     
     $('form#comment_write input[type="hidden"]').each((i, e) => {
@@ -39,14 +39,21 @@ function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
     requestBody['code'] = 'undefined';
     requestBody['user_ip'] = $('#user_ip').val();
 
-    const codeKey = codeGen.keyFinder(body);
-    requestBody['service_code'] = codeGen.serviceCode(codeKey, requestBody['service_code']);
+    try {
+        const codeKey = codeGen.keyFinder(body);
+        requestBody['service_code'] = codeGen.serviceCode(codeKey, requestBody['service_code']);
+    } catch (e) {
+        console.log(e);
+        console.log(body);
+        console.log('cannot find _r');
+        telegram.sendMessage(chatId, 'codegen 오류');
+    }
 
 //    requestBody['service_code'] = codeGen.serviceCode('u6/h30tk4GTV46uRuzvU3zwRE0qg30tTu=Thu6qRu6uX30tTEGTkEGXi', 
 //    '21ac6e96ad152e8f15a05b7350a24759b5606fa191c17e042e4d0175735f4d687fe382fbda50ef850165ede88a2bf08f0877ba339632311647308d09f7e9ef476cfc4ddcf07040dba82f9828e00ae15da319f405ad178641da9c46aa426586a7b9300abb6cc75da574ffe4e6ce4c91bf00bae955f94f53747ec641eee51e008bdbf762d741fc7ac734a06975bdc0f3be73145c9c5982b7a360646f2320b4f02d8d109aa5b6c8e4b9');
 //        requestBody['ci_t'] = '35fbf286023bdf97b714ef8fe4a13ced';
 
-    console.log(JSON.stringify(requestBody));
+    //console.log(JSON.stringify(requestBody));
 
     let cookieString = cookieJar.cookieStringForRequest(CONFIG.get('gallHost'), '/');
     cookieString += '; lately_cookie=theaterM%7C%uC5F0%uADF9%2C%20%uBBA4%uC9C0%uCEEC%7C8@@lunatichai%7C%uB8E8%uB098%uD2F1%uD558%uC774%7C21@@pokemongo%7C%uD3EC%uCF13%uBAAC%20GO%7C18@@hit%7CHIT%7C1@@alcohol%7C%uC8FC%uB958%7C7';
@@ -72,8 +79,8 @@ function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
         },
         agent: agent,
     }
-    console.log(options.headers.Cookie);
-    console.log(payload);
+    //console.log(options.headers.Cookie);
+    //console.log(payload);
     let resp = '';
     const req = http.request(options, (response) => {
         response.on('data', (d) => {
@@ -82,11 +89,12 @@ function sendReply($, cookieJar, agent, message, url, body, chatId, next) {
 
         response.on('end', () => {
             console.log(resp);
-            if (next.length > 0) {
-                next[0]($, cookieJar, agent, next.slice(1));
+            if (!parseInt(resp) && recur < 5) {
+                module.exports.reply(url, message, chatId, undefined, recur + 1);
+            } else {
+                const result = parseInt(resp) ? '성공' : '실패';
+                telegram.sendMessage(chatId, url + ' 에 덧글 달기 시도. 패스워드는 ' + requestBody.password + ', ip는 ' + requestBody.user_ip + '이야. 결과: ' + result);
             }
-            const result = parseInt(resp) ? '성공' : '실패';
-            telegram.sendMessage(chatId, url + ' 에 덧글 달기 시도. 패스워드는 ' + requestBody.password + ', ip는 ' + requestBody.user_ip + '이야. 결과: ' + result);
         });
     });
 
@@ -150,8 +158,8 @@ module.exports = {
         return true;
     },
 
-    reply: (url, message, chatId, origMessage) => {
-        
+    reply: (url, message, chatId, origMessage, recur) => {
+        if (!recur) recur = 0;
         var agent = new http.Agent({
             keepAlive: true,
             maxSockets: 1,
@@ -180,11 +188,11 @@ module.exports = {
 
             const cookieJar = new cookieClient();
             cookieJar.addFromHeaders(response.headers, {
-                domain: 'dcinside.com',
+                domain: '.dcinside.com',
             });
             
             let $ = cheerio.load(body);
-            sendReply($, cookieJar, agent, message, url, body, chatId, []);
+            sendReply($, cookieJar, agent, message, url, body, chatId, [], recur + 1);
         })
     },
 

@@ -21,6 +21,7 @@
             o = o + String.fromCharCode(c3);
         }
     }
+    console.log(o);
     return o;
 }
 
