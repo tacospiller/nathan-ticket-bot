@@ -28,7 +28,11 @@ module.exports = {
                 console.log(error);
             } else {
                 const jsonBody = JSON.parse(body);
-                OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
+                if (jsonBody.result.length === 0) {
+                    OFFSET = 0;
+                } else {
+                    OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
+                }
             }
             console.log('Polling Telegram updates')
             module.exports.processUpdates();
@@ -127,7 +131,11 @@ module.exports = {
                             });
                         }
                     });
-                    OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
+                    if (jsonBody.result.length === 0) {
+                        OFFSET = 0;
+                    } else {
+                        OFFSET = jsonBody.result[jsonBody.result.length - 1].update_id;
+                    }
                 }
                 setTimeout(module.exports.processUpdates, 2000);
             });  
